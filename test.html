@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="main.js"></script>
+    <style>
+      .container {
+        width: 80%;
+        margin: 0 auto;
+      }
+
+      .inputContainer {
+        width: 80%;
+        margin: 10px auto;
+      }
+
+      .msgInput {
+        width: 60%;
+        height: 25px;
+        border-radius: 3px;
+      }
+
+      .userInput {
+        width: 10%;
+        height: 25px;
+        border-radius: 3px;
+      }
+
+      .sendBtn {
+        padding: 5px;
+      }
+
+      .chatboard {
+        width: 80%;
+        height: 300px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <textarea id="chatboard" class="chatboard"></textarea>
+    </div>
+    <div class="inputContainer">
+      <input type="text" id="user" value="" class="userInput" />
+      <input type="text" id="message" value="" class="msgInput" />
+      <button id="sendBtn" class="sendBtn">SEND</button>
+    </div>
+
+    <script>
+      const eventSource = new EventSource(`http://localhost:8080/sse`);
+      eventSource.onmessage = (event) => {
+        console.log(event.data);
+
+        let chatBoard = document.querySelector("#chatboard");
+        chatBoard.append(event.data + "\n");
+      };
+      eventSource.onerror = (error) => {
+        eventSource.close();
+      };
+
+      document.querySelector("#sendBtn").addEventListener("click", () => {
+        let username = document.querySelector("#user").value;
+        let msg = document.querySelector("#message").value;
+        let data = username + ":" + msg;
+
+        fetch("http://localhost:8080/send?message=" + data)
+          .then((res) => res.text())
+          .then((res) => {
+            console.log(res);
+            let chatBoard = document.querySelector("#chatboard");
+            let item_el = document.createElement("div");
+            item_el.textContent = "data";
+            chatBoard.appendChild(item_el);
+            document.querySelector("#message").value = "";
+          });
+      });
+    </script>
+  </body>
+</html>
